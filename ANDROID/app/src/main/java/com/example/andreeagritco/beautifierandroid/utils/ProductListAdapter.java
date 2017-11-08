@@ -52,16 +52,6 @@ public class ProductListAdapter extends BaseAdapter {
         descriptionView.setText(productList.get(position).getDescription());
         brandView.setText(productList.get(position).getBrand());
 
-
-//        convertView.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                Intent intent = new Intent(MainActivity.class, EditActivity.class);
-//                intent.putExtra("product", productList.get(position));
-//            }
-//        });
-
-
         return convertView;
     }
 }

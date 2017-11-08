@@ -1,5 +1,8 @@
 package com.example.andreeagritco.beautifierandroid.domain;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by Andreea Gritco on 08-Nov-17.
  */
@@ -16,4 +19,19 @@ public class BrandTypes {
     public static final String BOURJOIS = "Bourjois";
     public static final String URBAN_DECAY = "Urban Decay";
     public static final String NYX = "NYX";
+
+    public static List<String> returnBrands(){
+        List<String> list = new ArrayList<>();
+        list.add(TOO_FACED);
+        list.add(RIMMEL_LONDON);
+        list.add(ANASTASIA_BEVERLY_HILLS);
+        list.add(MELKIOR);
+        list.add(MAC);
+        list.add(ESSENCE);
+        list.add(MAYBELLINE);
+        list.add(BOURJOIS);
+        list.add(URBAN_DECAY);
+        list.add(NYX);
+        return list;
+    }
 }

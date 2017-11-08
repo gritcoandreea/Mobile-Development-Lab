@@ -1,5 +1,8 @@
 package com.example.andreeagritco.beautifierandroid.domain;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by Andreea Gritco on 08-Nov-17.
  */
@@ -19,4 +22,22 @@ public class ProductTypes {
     public static final String CREION_DE_OCHI = "Creion de ochi";
     public static final String RIMEL = "Rimel";
     public static final String CREION_DE_SPRANCENE = "Creion de sprancene";
+
+    public static List<String> returnTypes(){
+        List<String> list = new ArrayList<>();
+        list.add(FOND_DE_TEN);
+        list.add(PUDRA_COMPACTA);
+        list.add(PUDRA_MINEARALA);
+        list.add(CONCEALER);
+        list.add(PUDRA_CONTUR);
+        list.add(ILUMINATOR);
+        list.add(BLUSH);
+        list.add(CREION_DE_BUZE);
+        list.add(RUJ);
+        list.add(FARD_DE_OCHI);
+        list.add(CREION_DE_OCHI);
+        list.add(RIMEL);
+        list.add(CREION_DE_SPRANCENE);
+        return list;
+    }
 }
