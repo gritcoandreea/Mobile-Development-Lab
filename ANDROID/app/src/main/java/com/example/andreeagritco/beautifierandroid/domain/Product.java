@@ -12,11 +12,11 @@ public class Product implements Serializable {
     private String description;
     private String productType;
     private int quantity;
-    private int price;
+    private double price;
     private int imagePath;
     private String brand;
 
-    public Product(int id, String description, String productType, int quantity, int price,String brand,int imagePath) {
+    public Product(int id, String description, String productType, int quantity, double price, String brand, int imagePath) {
         this.id = id;
         this.description = description;
         this.productType = productType;
@@ -58,11 +58,11 @@ public class Product implements Serializable {
         this.quantity = quantity;
     }
 
-    public int getPrice() {
+    public double getPrice() {
         return price;
     }
 
-    public void setPrice(int price) {
+    public void setPrice(double price) {
         this.price = price;
     }
 
@@ -80,5 +80,10 @@ public class Product implements Serializable {
 
     public void setImagePath(int imagePath) {
         this.imagePath = imagePath;
+    }
+
+    @Override
+    public String toString() {
+        return "Product: " + this.description + "\n Product type: " + this.productType + "\nQuantity: " + this.quantity + "\nPrice: " + this.price + "\nBrand: " + this.brand;
     }
 }

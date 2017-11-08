@@ -1,7 +1,11 @@
 package com.example.andreeagritco.beautifierandroid;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -9,6 +13,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.example.andreeagritco.beautifierandroid.domain.BrandTypes;
 import com.example.andreeagritco.beautifierandroid.domain.Product;
@@ -16,11 +21,11 @@ import com.example.andreeagritco.beautifierandroid.domain.ProductTypes;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 public class EditActivity extends AppCompatActivity {
 
-    List<String> productTypes = new ArrayList<>();
-    List<String> brandTypes = new ArrayList<>();
+
     Spinner productTypeSpinner;
     Spinner brandSpinner;
     EditText descriptionText;
@@ -63,6 +68,9 @@ public class EditActivity extends AppCompatActivity {
 
         saveButton.setOnClickListener(new Button.OnClickListener() {
             public void onClick(View v) {
+
+                Product p2 = new Product(p.getId(),p.getDescription(),p.getProductType(),p.getQuantity(),p.getPrice(),p.getBrand(),0);
+
                 if (!descriptionText.getText().toString().equals("")) {
                     p.setDescription(descriptionText.getText().toString());
                 }
@@ -71,9 +79,11 @@ public class EditActivity extends AppCompatActivity {
                     p.setQuantity(Integer.parseInt(quantityText.getText().toString()));
                 }
                 if (!priceText.getText().toString().equals("")) {
-                    p.setQuantity(Integer.parseInt(priceText.getText().toString()));
+                    p.setPrice(Double.parseDouble(priceText.getText().toString()));
                 }
                 p.setBrand(brandSpinner.getSelectedItem().toString());
+
+                sendEmail(p2);
 
                 Intent returnIntent = new Intent();
                 returnIntent.putExtra("result", p);
@@ -84,6 +94,47 @@ public class EditActivity extends AppCompatActivity {
         });
 
 
+    }
+
+    private void sendEmail(Product p2){
+        String s="";
+        s+=p2.toString();
+        s+="\n\n was updated to:  \n\n";
+        s+=p.toString();
+
+
+
+        String[] TO = {"gritco.andreea@gmail.com"};
+        Intent emailIntent = new Intent(Intent.ACTION_SEND);
+        emailIntent.setData(Uri.parse("mailto:"));
+        emailIntent.setType("text/plain");
+
+
+        emailIntent.putExtra(Intent.EXTRA_EMAIL, TO);
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Product updated!");
+        emailIntent.putExtra(Intent.EXTRA_TEXT, s);
+
+        try {
+            startActivity(Intent.createChooser(emailIntent, "Send mail..."));
+            finish();
+
+        } catch (android.content.ActivityNotFoundException ex) {
+            Toast.makeText(EditActivity.this,
+                    "There is no email client installed.", Toast.LENGTH_SHORT).show();
+        }
+
+
+
+    }
+
+    public boolean isOnline() {
+        ConnectivityManager cm =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        if (netInfo != null && netInfo.isConnectedOrConnecting()) {
+            return true;
+        }
+        return false;
     }
 
     private void createLists() {
