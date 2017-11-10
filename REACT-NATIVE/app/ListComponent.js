@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {AppRegistry, Text, View,ListView,StyleSheet} from 'react-native';
+import {AppRegistry, Text, View, ListView, StyleSheet, TouchableHighlight} from 'react-native';
 
 
 const products = [
@@ -85,27 +85,19 @@ const products = [
 ]
 
 
-export default class ListComponent extends Component{
+export default class ListComponent extends Component {
 
-    constructor(){
-        super();
-        const ds =  new ListView.DataSource({rowHasChanged : (r1,r2) => r1 !== r2});
-        this.state={
-            productDataSource : ds.cloneWithRows(products),
+
+    constructor(props) {
+        super(props);
+        const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
+        this.state = {
+            productDataSource: ds.cloneWithRows(products),
         };
     }
-
-    renderRow(product, sectionId, rowId,highlightRow){
-
-      return(  <View style={styles.container}>
-            <Text style={styles.headline}>{product.description}</Text>
-            <Text style={styles.details}>{product.brand}</Text>
-        </View>
-      )
-    }
-
-    render(){
-        return(
+    render() {
+        const {navigate} = this.props.navigation;
+        return (
             <ListView
                 dataSource={this.state.productDataSource}
                 renderRow={this.renderRow.bind(this)}
@@ -113,16 +105,32 @@ export default class ListComponent extends Component{
         );
     }
 
+    renderRow(product, sectionId, rowId, highlightRow) {
+
+        return (
+            <TouchableHighlight onPress={()=>this.props.navigation.navigate('SecondScreen')}>
+                <View style={styles.container}>
+                    <Text style={styles.headline}>{product.description}</Text>
+                    <Text style={styles.details}>{product.brand}</Text>
+                </View>
+            </TouchableHighlight>
+        )
+    }
+
+
+
+
+
 
 }
 
 const styles = StyleSheet.create({
 
-    container:{
-        flex:1,
-        padding:25,
-        backgroundColor:'#f4f4f4',
-        marginBottom:3
+    container: {
+        flex: 1,
+        padding: 25,
+        backgroundColor: '#f4f4f4',
+        marginBottom: 3
     },
 
     details: {
@@ -138,4 +146,4 @@ const styles = StyleSheet.create({
 
 });
 
-AppRegistry.registerComponent('ListComponent',() => ListComponent );
+AppRegistry.registerComponent('ListComponent', () => ListComponent);
