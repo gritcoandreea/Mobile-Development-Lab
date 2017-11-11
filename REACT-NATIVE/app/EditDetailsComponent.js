@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {AppRegistry, Text, View, TextInput, StatusBar, StyleSheet, Button} from 'react-native';
-import {StackNavigator} from 'react-navigation';
+import * as Communications from 'react-native-communications';
 
 export default class EditDetailsComponent extends Component {
 
@@ -12,6 +12,9 @@ export default class EditDetailsComponent extends Component {
         this.quantity = '';
         this.brand = '';
 
+        this.email = 'gritco.andreea@gmail.com';
+        this.name = 'Product updated!';
+        this.content = '';
     }
 
 
@@ -73,6 +76,8 @@ export default class EditDetailsComponent extends Component {
                         item.setBrand(this.brand);
                         refresh();
                         goBack();
+                        this.content = 'Product: \n\n' + this.description + '\n' + this.productType + '\n' + this.price + '\n' + this.quantity+ '\n' + this.brand + '\n\n was updated to: \n\n' + this.description + '\n' + this.productType + '\n' + this.price + '\n' + this.quantity+ '\n' + this.brand;
+                        Communications.email([this.email, this.email], null, null, this.name, this.content)
                     }}>
                     </Button>
                     <Button

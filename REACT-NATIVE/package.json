@@ -10,6 +10,7 @@
 		"prop-types": "^15.6.0",
 		"react": "16.0.0",
 		"react-native": "0.50.1",
+		"react-native-communications": "^2.2.1",
 		"react-native-deprecated-custom-components": "^0.1.1",
 		"react-native-floating-labels": "^1.1.6",
 		"react-navigation": "^1.0.0-beta.19",
