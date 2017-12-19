@@ -17,8 +17,8 @@ import java.util.List;
  */
 
 public class ProductListAdapter extends BaseAdapter {
-    List<Product> productList;
-    LayoutInflater inflater;
+    private List<Product> productList;
+    private LayoutInflater inflater;
 
     public ProductListAdapter(List<Product> productList, LayoutInflater inflater) {
         this.productList = productList;
@@ -44,9 +44,9 @@ public class ProductListAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         convertView = inflater.inflate(R.layout.custom_product_layout, null);
 
-        ImageView imageView = (ImageView) convertView.findViewById(R.id.imageView);
-        TextView descriptionView = (TextView) convertView.findViewById(R.id.descriptionText);
-        TextView brandView = (TextView) convertView.findViewById(R.id.textBrand);
+        ImageView imageView = convertView.findViewById(R.id.imageView);
+        TextView descriptionView = convertView.findViewById(R.id.descriptionText);
+        TextView brandView = convertView.findViewById(R.id.textBrand);
 
         imageView.setImageResource(productList.get(position).getImagePath());
         descriptionView.setText(productList.get(position).getDescription());

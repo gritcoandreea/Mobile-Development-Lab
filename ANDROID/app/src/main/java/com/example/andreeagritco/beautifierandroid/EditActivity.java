@@ -1,11 +1,9 @@
 package com.example.andreeagritco.beautifierandroid;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -15,13 +13,21 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import com.example.andreeagritco.beautifierandroid.domain.BrandTypes;
+import com.example.andreeagritco.beautifierandroid.domain.BrandType;
 import com.example.andreeagritco.beautifierandroid.domain.Product;
-import com.example.andreeagritco.beautifierandroid.domain.ProductTypes;
+import com.example.andreeagritco.beautifierandroid.domain.ProductType;
+import com.example.andreeagritco.beautifierandroid.utils.AppDatabase;
+
+
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.LineGraphSeries;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.Properties;
 
 public class EditActivity extends AppCompatActivity {
 
@@ -31,7 +37,15 @@ public class EditActivity extends AppCompatActivity {
     EditText descriptionText;
     EditText quantityText;
     EditText priceText;
+
+    Button saveButton;
+    Button cancelButton;
+
     Product p;
+    AppDatabase db;
+
+    GraphView graph;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,35 +55,35 @@ public class EditActivity extends AppCompatActivity {
         Intent i = getIntent();
         p = (Product) i.getSerializableExtra("product");
 
+        db = AppDatabase.getAppDatabase(getApplicationContext());
 
-        descriptionText = (EditText) findViewById(R.id.descriptionText);
-        quantityText = (EditText) findViewById(R.id.quantityText);
-        priceText = (EditText) findViewById(R.id.priceText);
+        findViewComponents();
 
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... params) {
+                populateSpinners();
+                return null;
+            }
 
-        createLists();
-        descriptionText.setText(p.getDescription());
-        quantityText.setText(p.getQuantity() + "");
-        priceText.setText(p.getPrice() + "");
+        }.execute();
 
+        populateTextFields();
 
-
-
-        Button saveButton = (Button) findViewById(R.id.saveButton);
-        Button cancelButton = (Button) findViewById(R.id.cancelButton);
-
+        //Cancel Button Listener
         cancelButton.setOnClickListener(new Button.OnClickListener() {
             public void onClick(View v) {
-                Intent resultIntent = new Intent();
+                Intent resultIntent = new Intent(EditActivity.this, MainActivity.class);
                 setResult(Activity.RESULT_CANCELED, resultIntent);
-                finish();
+                finishActivity(0);
             }
         });
 
+        //Save Button Listener
         saveButton.setOnClickListener(new Button.OnClickListener() {
             public void onClick(View v) {
 
-                Product p2 = new Product(p.getId(),p.getDescription(),p.getProductType(),p.getQuantity(),p.getPrice(),p.getBrand(),0);
+                //  Product p2 = new Product(p.getId(), p.getDescription(), p.getProductType(), p.getQuantity(), p.getPrice(), p.getBrand(), 0);
 
                 if (!descriptionText.getText().toString().equals("")) {
                     p.setDescription(descriptionText.getText().toString());
@@ -83,32 +97,184 @@ public class EditActivity extends AppCompatActivity {
                 }
                 p.setBrand(brandSpinner.getSelectedItem().toString());
 
-                sendEmail(p2);
+                //  sendEmail(p2);
 
-                Intent returnIntent = new Intent();
-                returnIntent.putExtra("result", p);
-                setResult(Activity.RESULT_OK, returnIntent);
+
+                new AsyncTask<Void, Void, Void>() {
+                    @Override
+                    protected Void doInBackground(Void... params) {
+                        db.productDao().updateProducts(p);
+                        return null;
+                    }
+                }.execute();
+
+
+                Intent returnIntent = new Intent(EditActivity.this, MainActivity.class);
+                startActivity(returnIntent);
                 finish();
 
             }
         });
 
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(p.getPurchasedDate());
+
+
+        int year = cal.get(Calendar.YEAR);
+        int month = cal.get(Calendar.MONTH); // 1 (months begin with 0)
+        int day = cal.get(Calendar.DAY_OF_MONTH);
+        month++;
+
+
+        try {
+            List<Product> productList = new AsyncTask<Void, Void, List<Product>>() {
+                @Override
+                protected List<Product> doInBackground(Void... params) {
+                    return db.productDao().getAll();
+
+                }
+            }.execute().get();
+
+            List<Product> productsFromThisMonth = new ArrayList<>();
+
+            Calendar cal2 = Calendar.getInstance();
+
+            for (Product p : productList) {
+                Date date = p.getPurchasedDate();
+
+
+                cal2.setTime(date);
+                int day2 = cal2.get(Calendar.DAY_OF_MONTH);
+                int month2 = cal2.get(Calendar.MONTH);
+                month2++;
+
+                if(month == month2){
+                    productsFromThisMonth.add(p);
+                }
+
+            }
+
+            // Create a calendar object and set year and month
+            Calendar mycal = new GregorianCalendar(year, month--, 1);
+
+            // Get the number of days in that month
+           // int daysInMonth = mycal.getActualMaximum(Calendar.DAY_OF_MONTH);
+
+          int daysInMonth = 31;
+
+            double sum=0;
+
+
+            DataPoint[]  points = new DataPoint[daysInMonth];
+
+            for(int j=1;j<=daysInMonth;j++) {
+
+                for (Product p : productsFromThisMonth) {
+                    Date date = p.getPurchasedDate();
+
+                    Calendar cal3 = Calendar.getInstance();
+                    cal3.setTime(date);
+                    int day2 = cal3.get(Calendar.DAY_OF_MONTH);
+
+                    if(day2 == j){
+                        sum = sum + p.getQuantity()*p.getPrice();
+                    }
+
+                }
+
+                points[j-1] = new DataPoint(j,(int)sum);
+                sum=0;
+            }
+
+
+            LineGraphSeries<DataPoint> series = new LineGraphSeries<>(points);
+            graph.addSeries(series);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+// catch (ExecutionException e) {
+//            e.printStackTrace();
+//        }
+
+
+
+//        LineGraphSeries<DataPoint> series = new LineGraphSeries<>(new DataPoint[] {
+//                new DataPoint(0, 1),
+//                new DataPoint(1, 5),
+//                new DataPoint(2, 3),
+//                new DataPoint(3, 2),
+//                new DataPoint(4, 6)
+//        });
+
+
+
 
     }
 
-    private void sendEmail(Product p2){
-        String s="";
-        s+=p2.toString();
-        s+="\n\n was updated to:  \n\n";
-        s+=p.toString();
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+    }
+
+    private void findViewComponents() {
+        descriptionText = findViewById(R.id.descriptionText);
+        quantityText = findViewById(R.id.quantityText);
+        priceText = findViewById(R.id.priceText);
+
+        saveButton = findViewById(R.id.saveButton);
+        cancelButton = findViewById(R.id.cancelButton);
+
+        productTypeSpinner = findViewById(R.id.productTypeSpinner);
+        brandSpinner = findViewById(R.id.brandSpinner);
+
+        graph =  findViewById(R.id.graph);
+
+    }
 
 
+    private void populateSpinners() {
+
+        List<ProductType> types = db.productTypeDao().getAllProductTypes();
+        List<BrandType> brands = db.brandTypeDao().getAllBrandTypes();
+
+        ArrayAdapter<ProductType> productTypeArrayAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, types);
+        productTypeSpinner.setAdapter(productTypeArrayAdapter);
+
+        ArrayAdapter<BrandType> brandTypeArrayAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, brands);
+        brandSpinner.setAdapter(brandTypeArrayAdapter);
+
+        for (int i = 0; i < types.size(); i++) {
+            if (types.get(i).getProduct_description().equals(p.getProductType())) {
+                productTypeSpinner.setSelection(i);
+            }
+        }
+        for (int i = 0; i < brands.size(); i++) {
+            if (brands.get(i).getBrand_name().equals(p.getBrand())) {
+                brandSpinner.setSelection(i);
+            }
+        }
+    }
+
+    private void populateTextFields() {
+        descriptionText.setText(p.getDescription());
+        quantityText.setText(p.getQuantity() + "");
+        priceText.setText(p.getPrice() + "");
+    }
+
+    private void sendEmail(Product p2) {
+        String s = "";
+        s += p2.toString();
+        s += "\n\n was updated to:  \n\n";
+        s += p.toString();
 
         String[] TO = {"gritco.andreea@gmail.com"};
         Intent emailIntent = new Intent(Intent.ACTION_SEND);
         emailIntent.setData(Uri.parse("mailto:"));
         emailIntent.setType("text/plain");
-
 
         emailIntent.putExtra(Intent.EXTRA_EMAIL, TO);
         emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Product updated!");
@@ -122,50 +288,8 @@ public class EditActivity extends AppCompatActivity {
             Toast.makeText(EditActivity.this,
                     "There is no email client installed.", Toast.LENGTH_SHORT).show();
         }
-
-
-
     }
 
-    public boolean isOnline() {
-        ConnectivityManager cm =
-                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo netInfo = cm.getActiveNetworkInfo();
-        if (netInfo != null && netInfo.isConnectedOrConnecting()) {
-            return true;
-        }
-        return false;
-    }
-
-    private void createLists() {
-        productTypeSpinner = (Spinner) findViewById(R.id.productTypeSpinner);
-        brandSpinner = (Spinner) findViewById(R.id.brandSpinner);
-
-        List<String> types = ProductTypes.returnTypes();
-        List<String> brands = BrandTypes.returnBrands();
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_spinner_item, types);
-        productTypeSpinner.setAdapter(adapter);
-
-        ArrayAdapter<String> adapter2 = new ArrayAdapter<String>(this,
-                android.R.layout.simple_spinner_item, brands);
-        brandSpinner.setAdapter(adapter2);
-
-      for(int i=0;i<types.size();i++){
-          if(types.get(i).equals(p.getProductType())){
-              productTypeSpinner.setSelection(i);
-          }
-      }
-
-
-        for(int i=0;i<brands.size();i++){
-            if(brands.get(i).equals(p.getBrand())){
-                brandSpinner.setSelection(i);
-            }
-        }
-
-    }
 
 
 }
