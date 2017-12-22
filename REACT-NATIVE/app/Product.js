@@ -7,6 +7,7 @@ export class Product{
         this.price = price;
         this.quantity = quantity;
         this.brand = brand;
+        this.id = null;
     }
 
     getDescription(){
@@ -47,5 +48,13 @@ export class Product{
 
     setBrand(brand){
         this.brand =  brand;
+    }
+
+    getId(){
+        return this.id;
+    }
+
+    setId(id){
+        this.id = id;
     }
 }

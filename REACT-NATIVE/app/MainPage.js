@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, StyleSheet, TouchableOpacity, Text, BackHandler} from 'react-native';
+import {View, StyleSheet, TouchableOpacity, Text} from 'react-native';
 import {Product} from "./Product";
 
 //import Product from 'Product';
@@ -24,11 +24,24 @@ export class MainPage extends React.Component {
     render() {
         const {navigate} = this.props.navigation;
         return (
-            <View>
+            <View style={styles.container}>
 
                 <TouchableOpacity
-                    onPress={() => navigate('ProductList', {productsList: this.productList})}>
-                    <Text>
+                    onPress={() => navigate('AddProduct')}
+                    style={styles.button}
+                >
+                    <Text style={styles.text}>
+                        Add Product
+                    </Text>
+                </TouchableOpacity>
+
+
+                <TouchableOpacity
+                    //onPress={() => navigate('ProductList', {productsList: this.productList})}
+                    onPress={()=> navigate('ProductList')}
+                    style={styles.button}
+                >
+                    <Text style={styles.text}>
                         SEE LIST OF PRODUCTS
                     </Text>
                 </TouchableOpacity>
@@ -37,3 +50,22 @@ export class MainPage extends React.Component {
         );
     }
 }
+
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+        backgroundColor: '#ecf0f1',
+    },
+    button: {
+        height: 100,
+        marginTop: 10,
+        backgroundColor: '#f4f4f4',
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    text: {
+        fontSize: 20,
+    }
+});
