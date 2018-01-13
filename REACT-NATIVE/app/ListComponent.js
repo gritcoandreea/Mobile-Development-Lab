@@ -2,7 +2,8 @@ import * as React from 'react';
 import {AsyncStorage, FlatList, RefreshControl, TouchableOpacity, Text, View} from "react-native";
 import {Product} from "./Product";
 import {AppRegistry} from 'react-native';
-import { Alert } from 'react-native';
+import {Alert} from 'react-native';
+import firebase from "firebase/index";
 
 export default class ListComponent extends React.Component {
 
@@ -19,23 +20,20 @@ export default class ListComponent extends React.Component {
     onRefresh() {
         this.setState({refreshing: true});
         this.product_list = [];
-        AsyncStorage.getAllKeys().then(
-            (value1) => {
+        // if (firebase.auth().current.email === 'gritco.andreea@gmail.com') {
 
-                for (let i = 0; i < value1.length; i++) {
-                    AsyncStorage.getItem(value1[i]).then(
-                        (value2) => {
-                            let productJson = JSON.parse(value2);
-                            let product = new Product(productJson['description'], productJson['productType'], productJson['price'], productJson['quantity'], productJson['brand']);
-                            product.setId(productJson['id']);
-                            if (productJson['id'] !== null)
-                                this.product_list.push(product);
-                        }
-                    ).done();
-
+        firebase.database().ref().child("products").on('value', (childSnapshot) => {
+            childSnapshot.forEach((doc) => {
+                let product = new Product(doc.toJSON().description, doc.toJSON().productType, doc.toJSON().price, doc.toJSON().quantity, doc.toJSON().brand, doc.toJSON().userEmail);
+                product.setId(doc.toJSON().id);
+                if (product.getUserEmail() === firebase.auth().currentUser.email) {
+                    this.product_list.push(product);
                 }
-            }
-        ).then(this.setState({refreshing: false})).done();
+            })
+        });
+        this.setState({refreshing: false});
+
+        // }
 
 
     }
@@ -47,9 +45,8 @@ export default class ListComponent extends React.Component {
     render() {
         // this.product_List = this.props.navigation.state.params.productsList;
         const {navigate} = this.props.navigation;
-        if (this.state.refreshing) {
-            return <View><Text>Loading...</Text></View>
-        }
+
+
         return (
             <FlatList containerStyle={{marginBottom: 20}}
                       data={this.product_list}
@@ -68,12 +65,29 @@ export default class ListComponent extends React.Component {
                                   borderWidth: 0.5,
                                   borderColor: '#001e00',
                               }}
-                              onPress={() =>
-                                  navigate('EditProduct', {
-                                      item: item,
-                                      refresh: this.onRefresh
-                                  })
-                              }
+                              onPress={() => {
+
+
+                                  firebase.database().ref().child("powerUsers").on('value', (childSnapshot) => {
+                                      childSnapshot.forEach((doc) => {
+
+                                          if (doc.toJSON().email === firebase.auth().currentUser.email) {
+                                              navigate('EditProduct', {
+                                                  item: item,
+                                                  refresh: this.onRefresh
+                                              })
+                                          }
+                                      })
+                                  });
+
+
+                                  // if (firebase.auth().currentUser.email === 'gritco.andreea@gmail.com') {
+                                  //     navigate('EditProduct', {
+                                  //         item: item,
+                                  //         refresh: this.onRefresh
+                                  //     })
+                                  // }
+                              }}
 
                               onLongPress={() => {
 
@@ -83,16 +97,12 @@ export default class ListComponent extends React.Component {
                                       'Do you want to delete this product?',
                                       [
                                           {
-                                              text: 'OK', onPress: () => {
-                                              AsyncStorage.getItem(item.getId().toString()).then(
-                                                  (value) => {
-                                                      let productJson = JSON.parse(value);
-                                                      productJson['id'] = null;
-                                                      AsyncStorage.setItem(item.getId().toString(), JSON.stringify(productJson)).done();
-                                                  }
-                                              ).then(alert("Item was deleted!")).then(this.onRefresh).done();
+                                              text: 'OK',
+                                              onPress: () => {
+                                                  firebase.database().ref('products').child(item.getId()).remove();
+                                                  this.onRefresh();
 
-                                          }
+                                              }
 
 
                                           },

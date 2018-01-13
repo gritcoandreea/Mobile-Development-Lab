@@ -1,12 +1,14 @@
 import React from 'react';
 import {View, StyleSheet, TouchableOpacity, Text} from 'react-native';
 import {Product} from "./Product";
-
-//import Product from 'Product';
+import firebase from 'firebase';
 
 export class MainPage extends React.Component {
+
+
     constructor() {
         super();
+
         this.productList = [
             new Product("Fond de ten Born This Way", "FOND_DE_TEN", "180", "2", "Too Faced"),
             new Product("Highlighter", "ILUMINATOR", "200", "1", "Anastasia Beverly Hills"),
@@ -21,8 +23,11 @@ export class MainPage extends React.Component {
         ];
     }
 
+
     render() {
         const {navigate} = this.props.navigation;
+
+
         return (
             <View style={styles.container}>
 
@@ -38,11 +43,27 @@ export class MainPage extends React.Component {
 
                 <TouchableOpacity
                     //onPress={() => navigate('ProductList', {productsList: this.productList})}
-                    onPress={()=> navigate('ProductList')}
+                    onPress={() => navigate('ProductList')}
                     style={styles.button}
                 >
                     <Text style={styles.text}>
                         SEE LIST OF PRODUCTS
+                    </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    onPress={() => {
+                        firebase.auth().signOut().then(function () {
+                            navigate("LoginScreen");
+                        }).catch(function (error) {
+                            alert(error.code);
+                            alert(error.message);
+                        });
+                    }
+                    }
+                    style={styles.button}>
+                    <Text style={styles.text}>
+                        Log Out
                     </Text>
                 </TouchableOpacity>
 

@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import {AppRegistry, Text, View, TextInput, AsyncStorage, StyleSheet, Button, Picker} from 'react-native';
 import * as Communications from 'react-native-communications';
+import firebase from 'firebase';
 
 export default class EditDetailsComponent extends Component {
 
@@ -51,7 +52,7 @@ export default class EditDetailsComponent extends Component {
 
                 <Picker
                     style={{width: "80%", borderWidth: 1, backgroundColor: 'white'}}
-                    selectedValue={this.state.productTypeSelection}
+                    selectedValue={item.getProductType()}
                     onValueChange={(itemValue, itemIndex) => this.setState({productTypeSelection: itemValue})}>
                     <Picker.Item label="Rimmel London" value="Rimmel London"/>
                     <Picker.Item label="Anastasia Beverly Hills" value="Anastasia Beverly Hills"/>
@@ -84,7 +85,7 @@ export default class EditDetailsComponent extends Component {
 
                 <Picker
                     style={{width: "80%", borderWidth: 1, backgroundColor: 'white'}}
-                    selectedValue={this.state.brandSelection}
+                    selectedValue={item.getBrand()}
                     onValueChange={(itemValue, itemIndex) => this.setState({brandSelection: itemValue})}>
                     <Picker.Item label="Fond de ten" value="Fond de ten"/>
                     <Picker.Item label="Pudra compacta" value="Pudra compacta"/>
@@ -123,16 +124,9 @@ export default class EditDetailsComponent extends Component {
                         item.setQuantity(this.quantity);
                         item.setBrand(this.state.brandSelection);
 
-                        AsyncStorage.getItem(item.getId().toString()).then((value) => {
-                            let productJson = JSON.parse(value);
-                            productJson['description'] = this.description;
-                            productJson['productType'] = this.state.productTypeSelection;
-                            productJson['price'] = this.price;
-                            productJson['quantity'] = this.quantity;
-                            productJson['brand'] = this.state.brandSelection;
 
-                            AsyncStorage.setItem(item.getId().toString(), JSON.stringify(productJson)).done();
-                        }).done();
+                        firebase.database().ref("products").child(item.getId()).update(item);
+
                         refresh();
                         goBack();
 

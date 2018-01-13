@@ -7,13 +7,14 @@
 		"test": "jest"
 	},
 	"dependencies": {
+		"firebase": "^4.8.2",
 		"prop-types": "^15.6.0",
 		"react": "16.0.0",
 		"react-native": "^0.51.0",
 		"react-native-communications": "^2.2.1",
 		"react-native-deprecated-custom-components": "^0.1.1",
 		"react-native-floating-labels": "^1.1.6",
-		"react-navigation": "^1.0.0-beta.22",
+		"react-navigation": "^1.0.0-beta.26",
 		"rn-floating-label-input": "^1.2.2"
 	},
 	"devDependencies": {

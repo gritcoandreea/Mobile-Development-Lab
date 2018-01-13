@@ -1,6 +1,6 @@
 
 export class Product{
-    constructor(description,productType,price,quantity,brand){
+    constructor(description,productType,price,quantity,brand,userEmail){
 
         this.description = description;
         this.productType = productType;
@@ -8,6 +8,7 @@ export class Product{
         this.quantity = quantity;
         this.brand = brand;
         this.id = null;
+        this.userEmail= userEmail;
     }
 
     getDescription(){
@@ -56,5 +57,13 @@ export class Product{
 
     setId(id){
         this.id = id;
+    }
+
+    getUserEmail(){
+        return this.userEmail;
+    }
+
+    setUserEmail(email){
+        this.userEmail = email;
     }
 }

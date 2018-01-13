@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {Button, TextInput, View, StyleSheet, Text, AsyncStorage, Picker} from "react-native";
-
+import firebase from 'firebase';
 
 export class AddProduct extends React.Component {
 
@@ -78,19 +78,17 @@ export class AddProduct extends React.Component {
                     title="Add Product!"
                     onPress={
                         () => {
-                            AsyncStorage.getAllKeys().then(
-                                (value) => {
-                                    let current_id = -1;
-                                    for(let i=0;i<value.length;i++){
-                                        const id = parseInt(value[i],10);
-                                        if(id>current_id){
-                                            current_id = id;
-                                        }
-                                    }
-                                    current_id++;
-                                    AsyncStorage.setItem(current_id.toString(),JSON.stringify({"id": current_id, "description": this.description, "productType": this.state.productTypeSelection, "price":this.price,"quantity" : this.quantity, "brand":this.state.brandSelection} )).done();
+                            let id = firebase.database().ref().child('products').push().key;
+                            firebase.database().ref('products').child(id).update({
+                                    id: id,
+                                    description: this.description,
+                                    productType: this.state.productTypeSelection,
+                                    price: this.price,
+                                    quantity: this.quantity,
+                                    brand: this.state.brandSelection,
+                                    userEmail: firebase.auth().currentUser.email
                                 }
-                            ).done();
+                            );
                             goBack();
                         }
                     }
