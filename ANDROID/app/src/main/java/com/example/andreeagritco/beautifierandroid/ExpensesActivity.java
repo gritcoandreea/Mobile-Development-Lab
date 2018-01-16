@@ -13,8 +13,13 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.example.andreeagritco.beautifierandroid.domain.Product;
-import com.example.andreeagritco.beautifierandroid.utils.AppDatabase;
 import com.example.andreeagritco.beautifierandroid.utils.ProductListAdapter;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -33,8 +38,6 @@ public class ExpensesActivity extends AppCompatActivity {
     private int day;
     private boolean isOkayClicked;
 
-    AppDatabase db;
-
     List<Product> products;
     List<Date> dates = new ArrayList<>();
 
@@ -44,12 +47,17 @@ public class ExpensesActivity extends AppCompatActivity {
     List<Product> selectedProducts = new ArrayList<>();
 
 
+    private FirebaseAuth mAuth;
+    private DatabaseReference databaseReference;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.expenses_activity);
 
-        db = AppDatabase.getAppDatabase(getApplicationContext());
+        mAuth = FirebaseAuth.getInstance();
+        databaseReference = FirebaseDatabase.getInstance().getReference("products");
 
 
         year = Calendar.getInstance().get(Calendar.YEAR);
@@ -64,62 +72,73 @@ public class ExpensesActivity extends AppCompatActivity {
                 if (isOkayClicked) {
 
                     //get all products
-                    try {
-                        products = new AsyncTask<Void, Void, List<Product>>() {
-                            @Override
-                            protected List<Product> doInBackground(Void... params) {
-                                return db.productDao().getAll();
-                            }
+//                    databaseReference.addValueEventListener(new ValueEventListener() {
+//                        @Override
+//                        public void onDataChange(DataSnapshot dataSnapshot) {
+//                            products.clear();
+//
+//                            for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+//                                Product product = postSnapshot.getValue(Product.class);
+//                                if (mAuth.getCurrentUser().getEmail().equals(product.getUserEmail())) {
+//                                    products.add(product);
+//                                }
+//                            }
+//
+//
+//                        }
+//
+//                        @Override
+//                        public void onCancelled(DatabaseError databaseError) {
+//
+//                        }
+//                    });
 
-                        }.execute().get();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    } catch (ExecutionException e) {
-                        e.printStackTrace();
-                    }
+
+
+
 
                     //retrieve all dates from products
-                    for (Product p : products) {
-                        dates.add(p.getPurchasedDate());
-                    }
-
-                    for (int i = 0; i < dates.size(); i++) {
-
-                        Date date = dates.get(i); // Fri Jun 17 14:54:28 PDT 2016
-                        Calendar cal = Calendar.getInstance();
-                        cal.setTime(date);
-                        int day = cal.get(Calendar.DAY_OF_MONTH);
-                        int month = cal.get(Calendar.MONTH);
-                        month++;
-                        int year = cal.get(Calendar.YEAR);
-
-                        //if date of product is equal with selected date
-                        if (year == selectedYear && month == (selectedMonth + 1) && day == selectedDay) {
-                            expense = expense + (products.get(i).getPrice() * products.get(i).getQuantity());
-                            selectedProducts.add(products.get(i));
-                        }
-                    }
-
-                    listView = findViewById(R.id.productList);
-                    adapter = new ProductListAdapter(selectedProducts, getLayoutInflater());
-                    listView.setAdapter(adapter);
-
-                    listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                        @Override
-                        public void onItemClick(AdapterView<?> parent, View view, int position,
-                                                long id) {
-
-                            Intent intent = new Intent(ExpensesActivity.this, DetailsActivity.class);
-                            intent.putExtra("product", selectedProducts.get(position));
-                            startActivity(intent);
-
-                        }
-                    });
-
-
-                    expensesText = findViewById(R.id.expensesText);
-                    expensesText.setText("Total expenses:" + expense + "");
-                    expensesText.setVisibility(View.VISIBLE);
+//                    for (Product p : products) {
+//                        dates.add(p.getPurchasedDate());
+//                    }
+//
+//                    for (int i = 0; i < dates.size(); i++) {
+//
+//                        Date date = dates.get(i); // Fri Jun 17 14:54:28 PDT 2016
+//                        Calendar cal = Calendar.getInstance();
+//                        cal.setTime(date);
+//                        int day = cal.get(Calendar.DAY_OF_MONTH);
+//                        int month = cal.get(Calendar.MONTH);
+//                        month++;
+//                        int year = cal.get(Calendar.YEAR);
+//
+//                        //if date of product is equal with selected date
+//                        if (year == selectedYear && month == (selectedMonth + 1) && day == selectedDay) {
+//                            expense = expense + (products.get(i).getPrice() * products.get(i).getQuantity());
+//                            selectedProducts.add(products.get(i));
+//                        }
+//                    }
+//
+//                    listView = findViewById(R.id.productList);
+//                    adapter = new ProductListAdapter(selectedProducts, getLayoutInflater());
+//                    listView.setAdapter(adapter);
+//
+//                    listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//                        @Override
+//                        public void onItemClick(AdapterView<?> parent, View view, int position,
+//                                                long id) {
+//
+//                            Intent intent = new Intent(ExpensesActivity.this, PowerUserActivity.class);
+//                            intent.putExtra("product", selectedProducts.get(position));
+//                            startActivity(intent);
+//
+//                        }
+//                    });
+//
+//
+//                    expensesText = findViewById(R.id.expensesText);
+//                    expensesText.setText("Total expenses:" + expense + "");
+//                    expensesText.setVisibility(View.VISIBLE);
 
 
                 }
@@ -142,7 +161,7 @@ public class ExpensesActivity extends AppCompatActivity {
                             dialog.cancel();
                             isOkayClicked = false;
 
-                            Intent returnIntent = new Intent(ExpensesActivity.this, MainActivity.class);
+                            Intent returnIntent = new Intent(ExpensesActivity.this, PowerUserActivity.class);
                             startActivity(returnIntent);
                             finish();
 

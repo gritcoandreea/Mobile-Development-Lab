@@ -18,11 +18,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".EditActivity" />
+        <activity android:name=".EditProductActivity" />
         <activity android:name=".DetailsActivity" />
         <activity android:name=".AddProductActivity" />
-        <activity android:name=".ListActivity" />
-        <activity android:name=".ExpensesActivity"></activity>
+        <activity android:name=".ProductsListActivity" />
+        <activity android:name=".ExpensesActivity" />
+        <activity android:name=".LoginActivity" />
+        <activity android:name=".PowerUserActivity" />
+        <activity android:name=".NormalUserActivity"></activity>
+
+
     </application>
 
 </manifest>

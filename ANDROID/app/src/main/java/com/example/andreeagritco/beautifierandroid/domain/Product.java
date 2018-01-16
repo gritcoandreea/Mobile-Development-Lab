@@ -15,54 +15,23 @@ import java.util.Date;
  * Created by Andreea Gritco on 08-Nov-17.
  */
 
-@Entity(tableName = "products", foreignKeys = {@ForeignKey(
-        entity = ProductType.class,
-        parentColumns = "product_description",
-        childColumns = "product_type"),
-        @ForeignKey(
-                entity = BrandType.class,
-                parentColumns = "brand_name",
-                childColumns = "brand_name")}
-)
 public class Product implements Serializable {
 
-    @PrimaryKey(autoGenerate = true)
-    private int id;
-
-    @ColumnInfo(name = "description")
+    private String id;
     private String description;
-
-    @ColumnInfo(name = "product_type")
     private String productType;
-
-    @ColumnInfo(name = "quantity")
     private int quantity;
-
-    @ColumnInfo(name = "price")
     private double price;
-
-    @ColumnInfo(name = "imagePath")
     private int imagePath;
-
-    @ColumnInfo(name = "brand_name")
     private String brand;
-
-    @ColumnInfo(name = "purchased_date")
-    @TypeConverters(value = Converters.class)
     private Date purchasedDate;
+    private String userEmail;
 
-    @Ignore
-    public Product(int id, String description, String productType, int quantity, double price, String brand, int imagePath) {
-        this.id = id;
-        this.description = description;
-        this.productType = productType;
-        this.quantity = quantity;
-        this.price = price;
-        this.brand = brand;
-        this.imagePath = imagePath;
+    public Product(){
+
     }
 
-    public Product(String description, String productType, int quantity, double price, String brand, int imagePath,Date purchasedDate) {
+    public Product(String description, String productType, int quantity, double price, String brand, int imagePath, Date purchasedDate,String userEmail) {
         this.description = description;
         this.productType = productType;
         this.quantity = quantity;
@@ -70,13 +39,14 @@ public class Product implements Serializable {
         this.brand = brand;
         this.imagePath = imagePath;
         this.purchasedDate = purchasedDate;
+        this.userEmail = userEmail;
     }
 
-    public int getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -136,6 +106,14 @@ public class Product implements Serializable {
         this.purchasedDate = purchasedDate;
     }
 
+    public String getUserEmail() {
+        return userEmail;
+    }
+
+    public void setUserEmail(String userEmail) {
+        this.userEmail = userEmail;
+    }
+
     @Override
     public String toString() {
         return "Product: " + this.description + "\n Product type: " + this.productType + "\nQuantity: " + this.quantity + "\nPrice: " + this.price + "\nBrand: " + this.brand;
@@ -144,12 +122,12 @@ public class Product implements Serializable {
     public static class Converters {
 
         @TypeConverter
-        public Date fromTimestamp(Long value){
+        public Date fromTimestamp(Long value) {
             return value == null ? null : new Date(value);
         }
 
         @TypeConverter
-        public Long dateToTimestamp(Date date){
+        public Long dateToTimestamp(Date date) {
             return date == null ? null : date.getTime();
         }
 

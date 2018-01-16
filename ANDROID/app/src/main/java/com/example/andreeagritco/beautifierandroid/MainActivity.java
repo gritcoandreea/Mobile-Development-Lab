@@ -1,72 +1,97 @@
 package com.example.andreeagritco.beautifierandroid;
 
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.support.annotation.NonNull;
 
-import com.example.andreeagritco.beautifierandroid.domain.Product;
-import com.example.andreeagritco.beautifierandroid.utils.AppDatabase;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.FirebaseDatabase;
 
 
 public class MainActivity extends AppCompatActivity {
 
-    public static final String TAG = MainActivity.class.getName();
-
-    private static final int EDIT_ACTIVITY_RESULT_CODE = 0;
-
-
-    Button addProductButton;
-    Button listButton;
-    Button expensesButton;
-
+    private Button myProductsButton;
+    private Button signOutButton;
+    private FirebaseAuth mAuth;
+    private FirebaseAuth.AuthStateListener mAuthListener;
+    GoogleSignInOptions gso;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        findComponents();
+        FirebaseDatabase.getInstance().setPersistenceEnabled(true);
+        mAuth = FirebaseAuth.getInstance();
 
-        listButton.setOnClickListener(new Button.OnClickListener() {
-
-            public void onClick(View v) {
-                Intent returnIntent = new Intent(MainActivity.this, ListActivity.class);
-                startActivity(returnIntent);
+        mAuthListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                if (firebaseAuth.getCurrentUser() == null) {
+                    startActivity(new Intent(MainActivity.this, LoginActivity.class));
+                }
             }
+        };
+
+        myProductsButton = findViewById(R.id.buttonMyProducts);
+        myProductsButton.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+               Log.w("USER",mAuth.getCurrentUser().getEmail());
+                if(mAuth.getCurrentUser().getEmail().equals("gritco.andreea@gmail.com")){
+                    Intent intent = new Intent(MainActivity.this,PowerUserActivity.class);
+                    startActivity(intent);
+                }else{
+                    Intent intent = new Intent(MainActivity.this,NormalUserActivity.class);
+                    startActivity(intent);
+                }
+            }
+
         });
 
 
-        addProductButton.setOnClickListener(new Button.OnClickListener() {
+        signOutButton = findViewById(R.id.signOutButton);
+        signOutButton.setOnClickListener(new View.OnClickListener() {
+            @Override
             public void onClick(View v) {
-                Intent returnIntent = new Intent(MainActivity.this, AddProductActivity.class);
-                startActivity(returnIntent);
+
+                mAuth.signOut();
+
+                gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                        .requestIdToken(getString(R.string.default_web_client_id))
+                        .requestEmail()
+                        .build();
+
+                GoogleSignInClient g =GoogleSignIn.getClient(MainActivity.this, gso);
+
+                g.signOut()
+                        .addOnCompleteListener(MainActivity.this, new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                // ...
+                            }
+                        });
             }
+
         });
-
-        expensesButton.setOnClickListener(new Button.OnClickListener() {
-            public void onClick(View v) {
-                Intent returnIntent = new Intent(MainActivity.this, ExpensesActivity.class);
-                startActivity(returnIntent);
-            }
-        });
-
-
     }
-
-    private void findComponents() {
-        listButton = findViewById(R.id.listButton);
-        addProductButton = findViewById(R.id.addButton);
-        expensesButton = findViewById(R.id.expensesButton);
-    }
-
 
     @Override
-    protected void onResume() {
-        super.onResume();
+    protected void onStart() {
+        super.onStart();
+        mAuth.addAuthStateListener(mAuthListener);
     }
 
-    
+
+
 }

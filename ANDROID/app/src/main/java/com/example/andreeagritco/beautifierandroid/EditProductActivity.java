@@ -16,9 +16,11 @@ import android.widget.Toast;
 import com.example.andreeagritco.beautifierandroid.domain.BrandType;
 import com.example.andreeagritco.beautifierandroid.domain.Product;
 import com.example.andreeagritco.beautifierandroid.domain.ProductType;
-import com.example.andreeagritco.beautifierandroid.utils.AppDatabase;
 
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
@@ -29,7 +31,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 
-public class EditActivity extends AppCompatActivity {
+public class EditProductActivity extends AppCompatActivity {
 
 
     Spinner productTypeSpinner;
@@ -42,9 +44,11 @@ public class EditActivity extends AppCompatActivity {
     Button cancelButton;
 
     Product p;
-    AppDatabase db;
 
     GraphView graph;
+
+    private FirebaseAuth mAuth;
+    DatabaseReference databaseReference;
 
 
     @Override
@@ -52,30 +56,28 @@ public class EditActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.edit_product_layout);
 
+
+        mAuth = FirebaseAuth.getInstance();
+        databaseReference = FirebaseDatabase.getInstance().getReference("products");
+        databaseReference.keepSynced(true);
+
+
         Intent i = getIntent();
         p = (Product) i.getSerializableExtra("product");
 
-        db = AppDatabase.getAppDatabase(getApplicationContext());
 
         findViewComponents();
 
-        new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... params) {
-                populateSpinners();
-                return null;
-            }
-
-        }.execute();
+        populateSpinners();
 
         populateTextFields();
 
         //Cancel Button Listener
         cancelButton.setOnClickListener(new Button.OnClickListener() {
             public void onClick(View v) {
-                Intent resultIntent = new Intent(EditActivity.this, MainActivity.class);
+                Intent resultIntent = new Intent(EditProductActivity.this, ProductsListActivity.class);
                 setResult(Activity.RESULT_CANCELED, resultIntent);
-                finishActivity(0);
+                finish();
             }
         });
 
@@ -99,18 +101,10 @@ public class EditActivity extends AppCompatActivity {
 
                 //  sendEmail(p2);
 
-
-                new AsyncTask<Void, Void, Void>() {
-                    @Override
-                    protected Void doInBackground(Void... params) {
-                        db.productDao().updateProducts(p);
-                        return null;
-                    }
-                }.execute();
-
-
-                Intent returnIntent = new Intent(EditActivity.this, MainActivity.class);
-                startActivity(returnIntent);
+                Intent returnIntent = new Intent(EditProductActivity.this, ProductsListActivity.class);
+                returnIntent.putExtra("updatedProduct", p);
+                // startActivity(returnIntent);
+                setResult(RESULT_OK, returnIntent);
                 finish();
 
             }
@@ -125,78 +119,84 @@ public class EditActivity extends AppCompatActivity {
         int day = cal.get(Calendar.DAY_OF_MONTH);
         month++;
 
+        if (mAuth.getCurrentUser().getEmail().equals("gritco.andreea@gmail.com")) {
 
-        try {
-            List<Product> productList = new AsyncTask<Void, Void, List<Product>>() {
-                @Override
-                protected List<Product> doInBackground(Void... params) {
-                    return db.productDao().getAll();
+//                     try {
+//                List<Product> productList = new AsyncTask<Void, Void, List<Product>>() {
+//                    @Override
+//                    protected List<Product> doInBackground(Void... params) {
+//                        return db.productDao().getAll();
+//
+//                    }
+//                }.execute().get();
+//
+//                List<Product> productsFromThisMonth = new ArrayList<>();
+//
+//                Calendar cal2 = Calendar.getInstance();
+//
+//                for (Product p : productList) {
+//                    Date date = p.getPurchasedDate();
+//
+//
+//                    cal2.setTime(date);
+//                    int day2 = cal2.get(Calendar.DAY_OF_MONTH);
+//                    int month2 = cal2.get(Calendar.MONTH);
+//                    month2++;
+//
+//                    if (month == month2) {
+//                        productsFromThisMonth.add(p);
+//                    }
+//
+//                }
+//
+//                // Create a calendar object and set year and month
+//                Calendar mycal = new GregorianCalendar(year, month--, 1);
+//
+//                // Get the number of days in that month
+//                // int daysInMonth = mycal.getActualMaximum(Calendar.DAY_OF_MONTH);
+//
+//                int daysInMonth = 31;
+//
+//                double sum = 0;
+//
+//
+//                DataPoint[] points = new DataPoint[daysInMonth];
+//
+//                for (int j = 1; j <= daysInMonth; j++) {
+//
+//                    for (Product p : productsFromThisMonth) {
+//                        Date date = p.getPurchasedDate();
+//
+//                        Calendar cal3 = Calendar.getInstance();
+//                        cal3.setTime(date);
+//                        int day2 = cal3.get(Calendar.DAY_OF_MONTH);
+//
+//                        if (day2 == j) {
+//                            sum = sum + p.getQuantity() * p.getPrice();
+//                        }
+//
+//                    }
+//
+//                    points[j - 1] = new DataPoint(j, (int) sum);
+//                    sum = 0;
+//                }
+//
+//
+//                LineGraphSeries<DataPoint> series = new LineGraphSeries<>(points);
+//                graph.addSeries(series);
+//
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//
 
-                }
-            }.execute().get();
-
-            List<Product> productsFromThisMonth = new ArrayList<>();
-
-            Calendar cal2 = Calendar.getInstance();
-
-            for (Product p : productList) {
-                Date date = p.getPurchasedDate();
-
-
-                cal2.setTime(date);
-                int day2 = cal2.get(Calendar.DAY_OF_MONTH);
-                int month2 = cal2.get(Calendar.MONTH);
-                month2++;
-
-                if(month == month2){
-                    productsFromThisMonth.add(p);
-                }
-
-            }
-
-            // Create a calendar object and set year and month
-            Calendar mycal = new GregorianCalendar(year, month--, 1);
-
-            // Get the number of days in that month
-           // int daysInMonth = mycal.getActualMaximum(Calendar.DAY_OF_MONTH);
-
-          int daysInMonth = 31;
-
-            double sum=0;
-
-
-            DataPoint[]  points = new DataPoint[daysInMonth];
-
-            for(int j=1;j<=daysInMonth;j++) {
-
-                for (Product p : productsFromThisMonth) {
-                    Date date = p.getPurchasedDate();
-
-                    Calendar cal3 = Calendar.getInstance();
-                    cal3.setTime(date);
-                    int day2 = cal3.get(Calendar.DAY_OF_MONTH);
-
-                    if(day2 == j){
-                        sum = sum + p.getQuantity()*p.getPrice();
-                    }
-
-                }
-
-                points[j-1] = new DataPoint(j,(int)sum);
-                sum=0;
-            }
-
-
-            LineGraphSeries<DataPoint> series = new LineGraphSeries<>(points);
-            graph.addSeries(series);
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        } else {
+            graph.setVisibility(View.INVISIBLE);
         }
+
 // catch (ExecutionException e) {
 //            e.printStackTrace();
 //        }
-
 
 
 //        LineGraphSeries<DataPoint> series = new LineGraphSeries<>(new DataPoint[] {
@@ -206,8 +206,6 @@ public class EditActivity extends AppCompatActivity {
 //                new DataPoint(3, 2),
 //                new DataPoint(4, 6)
 //        });
-
-
 
 
     }
@@ -229,31 +227,32 @@ public class EditActivity extends AppCompatActivity {
         productTypeSpinner = findViewById(R.id.productTypeSpinner);
         brandSpinner = findViewById(R.id.brandSpinner);
 
-        graph =  findViewById(R.id.graph);
+        graph = findViewById(R.id.graph);
 
     }
 
 
     private void populateSpinners() {
 
-        List<ProductType> types = db.productTypeDao().getAllProductTypes();
-        List<BrandType> brands = db.brandTypeDao().getAllBrandTypes();
+        List<String> types = ProductType.returnTypes();
+        List<String> brands = BrandType.returnBrands();
 
-        ArrayAdapter<ProductType> productTypeArrayAdapter = new ArrayAdapter<>(this,
+
+        ArrayAdapter<String> productTypeArrayAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_item, types);
         productTypeSpinner.setAdapter(productTypeArrayAdapter);
 
-        ArrayAdapter<BrandType> brandTypeArrayAdapter = new ArrayAdapter<>(this,
+        ArrayAdapter<String> brandTypeArrayAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_item, brands);
         brandSpinner.setAdapter(brandTypeArrayAdapter);
 
         for (int i = 0; i < types.size(); i++) {
-            if (types.get(i).getProduct_description().equals(p.getProductType())) {
+            if (types.get(i).equals(p.getProductType())) {
                 productTypeSpinner.setSelection(i);
             }
         }
         for (int i = 0; i < brands.size(); i++) {
-            if (brands.get(i).getBrand_name().equals(p.getBrand())) {
+            if (brands.get(i).equals(p.getBrand())) {
                 brandSpinner.setSelection(i);
             }
         }
@@ -285,11 +284,10 @@ public class EditActivity extends AppCompatActivity {
             finish();
 
         } catch (android.content.ActivityNotFoundException ex) {
-            Toast.makeText(EditActivity.this,
+            Toast.makeText(EditProductActivity.this,
                     "There is no email client installed.", Toast.LENGTH_SHORT).show();
         }
     }
-
 
 
 }
